@@ -63,14 +63,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //Get the error string:
         String sensor_error = getResources().getString(R.string.error_no_sensor);
 
+
+        //When the start recording button is clicked
         button = findViewById(R.id.start_recording);
         button.setOnClickListener(v -> {
-            this.onStart();
+//            this.onStart();
+            if (mSensorAccelerometer != null) {
+                mSensorManager.registerListener(this, mSensorAccelerometer,
+                        SensorManager.SENSOR_DELAY_NORMAL);
+            }
+            if (mSensorGyroscope != null) {
+                mSensorManager.registerListener(this, mSensorGyroscope,
+                        SensorManager.SENSOR_DELAY_NORMAL);
+            }
+            if (mSensorLinearAccelerometer != null) {
+                mSensorManager.registerListener(this, mSensorLinearAccelerometer,
+                        SensorManager.SENSOR_DELAY_NORMAL);
+            }
+            if (mSensorMagnetometer != null) {
+                mSensorManager.registerListener(this, mSensorMagnetometer,
+                        SensorManager.SENSOR_DELAY_NORMAL);
+            }
         });
 
+        //When the stop recording button is clicked
         button = findViewById(R.id.stop_recording);
         button.setOnClickListener(v -> {
-            this.onStop();
+//            this.onStop();
+            mSensorManager.unregisterListener(this);
+
+            System.out.println("KUUUUUUUUUUUR");
+//        System.out.println(AccelerometerData.toString());
+
+            for(float[] a : MagnetometerData){
+                System.out.println("Row: " + a[0]+ " "+ a[1]+ " " + a[2]);
+            }
+
         });
 
 
@@ -83,38 +111,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onStart() {
         super.onStart();
 
-        if (mSensorAccelerometer != null) {
-            mSensorManager.registerListener(this, mSensorAccelerometer,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        if (mSensorGyroscope != null) {
-            mSensorManager.registerListener(this, mSensorGyroscope,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        if (mSensorLinearAccelerometer != null) {
-            mSensorManager.registerListener(this, mSensorLinearAccelerometer,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        if (mSensorMagnetometer != null) {
-            mSensorManager.registerListener(this, mSensorMagnetometer,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }
+//        if (mSensorAccelerometer != null) {
+//            mSensorManager.registerListener(this, mSensorAccelerometer,
+//                    SensorManager.SENSOR_DELAY_NORMAL);
+//        }
+//        if (mSensorGyroscope != null) {
+//            mSensorManager.registerListener(this, mSensorGyroscope,
+//                    SensorManager.SENSOR_DELAY_NORMAL);
+//        }
+//        if (mSensorLinearAccelerometer != null) {
+//            mSensorManager.registerListener(this, mSensorLinearAccelerometer,
+//                    SensorManager.SENSOR_DELAY_NORMAL);
+//        }
+//        if (mSensorMagnetometer != null) {
+//            mSensorManager.registerListener(this, mSensorMagnetometer,
+//                    SensorManager.SENSOR_DELAY_NORMAL);
+//        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mSensorManager.unregisterListener(this);
-
-        System.out.println("KUUUUUUUUUUUR");
-//        System.out.println(AccelerometerData.toString());
-
-        for(float[] a : MagnetometerData){
-            System.out.println("Row: " + a[0]+ " "+ a[1]+ " " + a[2]);
-        }
-
-
-//        System.out.println(GyroscopeData.toString());
+//        mSensorManager.unregisterListener(this);
+//
+//        System.out.println("KUUUUUUUUUUUR");
+////        System.out.println(AccelerometerData.toString());
+//
+//        for(float[] a : MagnetometerData){
+//            System.out.println("Row: " + a[0]+ " "+ a[1]+ " " + a[2]);
+//        }
+//
+//
+////        System.out.println(GyroscopeData.toString());
     }
 
     @Override
