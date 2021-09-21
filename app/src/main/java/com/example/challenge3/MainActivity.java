@@ -9,8 +9,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
 
+import weka.classifiers.Classifier;
+import weka.core.converters.ConverterUtils.DataSource;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -101,6 +107,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         });
 
+        // deserialize model
+        ObjectInputStream ois = null;
+        try {
+            ois = new ObjectInputStream(
+                    new FileInputStream("C:\\Users\\stefa\\AndroidStudioProjects\\Challenge3\\app\\src\\J48.model"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            Classifier cls = (Classifier) ois.readObject();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            ois.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
 
