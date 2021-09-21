@@ -17,9 +17,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager mSensorManager;
     private Sensor mSensorAccelerometer;
     private Sensor mSensorGyroscope;
+    private Sensor mSensorLinearAccelerometer;
+    private Sensor mSensorMagnetometer;
 
     List<float[]> AccelerometerData = new ArrayList<float[]>();
     List<float[]> GyroscopeData = new ArrayList<float[]>();
+    List<float[]> LinearAccelerometerData = new ArrayList<float[]>();
+    List<float[]> MagnetometerData = new ArrayList<float[]>();
+
+
 
 
 
@@ -50,6 +56,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorAccelerometer =
                 mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mSensorGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        mSensorLinearAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        mSensorMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
 
         //Get the error string:
         String sensor_error = getResources().getString(R.string.error_no_sensor);
@@ -82,6 +91,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mSensorManager.registerListener(this, mSensorGyroscope,
                     SensorManager.SENSOR_DELAY_NORMAL);
         }
+        if (mSensorLinearAccelerometer != null) {
+            mSensorManager.registerListener(this, mSensorLinearAccelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if (mSensorMagnetometer != null) {
+            mSensorManager.registerListener(this, mSensorMagnetometer,
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     @Override
@@ -92,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         System.out.println("KUUUUUUUUUUUR");
 //        System.out.println(AccelerometerData.toString());
 
-        for(float[] a : AccelerometerData){
+        for(float[] a : MagnetometerData){
             System.out.println("Row: " + a[0]+ " "+ a[1]+ " " + a[2]);
         }
 
@@ -115,6 +132,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             case Sensor.TYPE_GYROSCOPE:
                     //Handle Gyroscope
                     GyroscopeData.add(currentData);
+                break;
+            case Sensor.TYPE_LINEAR_ACCELERATION:
+                //Handle Linear Accelerometer
+                    LinearAccelerometerData.add(currentData);
+                    break;
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                //Handle Magnetometer
+                MagnetometerData.add(currentData);
                 break;
             default:
                 //do nothing;
