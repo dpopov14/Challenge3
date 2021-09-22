@@ -14,15 +14,11 @@ import weka.classifiers.Classifier;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
-import weka.core.converters.ConverterUtils.DataSource;
-import java.io.FileInputStream;
+
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.io.Serializable;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -42,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Button button;
+        AtomicBoolean run = new AtomicBoolean(true);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -157,70 +154,75 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             //start the measuring thread
 
+
             Thread ActivityClassifierThread = new Thread(new Runnable() {
                 public void run()
                 {
-
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    //will periodically check the list with samples and create an instance
-                    Instances dataUnpredicted = new Instances("CurrentInstance",
-                            attributeList, 1);
-                    // last feature is target variable
-                    dataUnpredicted.setClassIndex(dataUnpredicted.numAttributes() - 1);
-
-                    // create new instance: this one should fall into the setosa domain
-
-                    DenseInstance newInstance = new DenseInstance(dataUnpredicted.numAttributes()) {
-                        {
-                            setValue(attributeAccelx, AccelerometerData[0]);
-                            setValue(attributeAccely, AccelerometerData[1]);
-                            setValue(attributeAccelz, AccelerometerData[2]);
-                            System.out.println(GyroscopeData[0]);
-                            setValue(attributeLinx, GyroscopeData[0]);
-                            setValue(attributeLiny, GyroscopeData[1]);
-                            setValue(attributeLinz, GyroscopeData[2]);
-                            setValue(attributeGyrox, LinearAccelerometerData[0]);
-                            setValue(attributeGyroy, LinearAccelerometerData[1]);
-                            setValue(attributeGyroz, LinearAccelerometerData[2]);
-                            setValue(attributeMagx, MagnetometerData[0]);
-                            setValue(attributeMagy, MagnetometerData[1]);
-                            setValue(attributeMagz, MagnetometerData[2]);
-
-                        }
-                    };
-
-                    //will classify samples
-                    try {
-                        AssetManager assetManager = getAssets();
+                    while(run.get()){
                         try {
-                            cls= (Classifier) weka.core.SerializationHelper.read(assetManager.open("J48.model"));
-                        } catch (IOException e) {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
                             e.printStackTrace();
+                        }
+                        //will periodically check the list with samples and create an instance
+                        Instances dataUnpredicted = new Instances("CurrentInstance",
+                                attributeList, 1);
+                        // last feature is target variable
+                        dataUnpredicted.setClassIndex(dataUnpredicted.numAttributes() - 1);
+
+                        // create new instance: this one should fall into the setosa domain
+
+                        DenseInstance newInstance = new DenseInstance(dataUnpredicted.numAttributes()) {
+                            {
+                                setValue(attributeAccelx, AccelerometerData[0]);
+                                setValue(attributeAccely, AccelerometerData[1]);
+                                setValue(attributeAccelz, AccelerometerData[2]);
+                                System.out.println(GyroscopeData[0]);
+                                setValue(attributeLinx, GyroscopeData[0]);
+                                setValue(attributeLiny, GyroscopeData[1]);
+                                setValue(attributeLinz, GyroscopeData[2]);
+                                setValue(attributeGyrox, LinearAccelerometerData[0]);
+                                setValue(attributeGyroy, LinearAccelerometerData[1]);
+                                setValue(attributeGyroz, LinearAccelerometerData[2]);
+                                setValue(attributeMagx, MagnetometerData[0]);
+                                setValue(attributeMagy, MagnetometerData[1]);
+                                setValue(attributeMagz, MagnetometerData[2]);
+
+                            }
+                        };
+
+                        newInstance.setDataset(dataUnpredicted);
+                        //will classify samples
+                        try {
+                            AssetManager assetManager = getAssets();
+                            try {
+                                cls= (Classifier) weka.core.SerializationHelper.read(assetManager.open("J48.model"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            double result = cls.classifyInstance(newInstance);
+                            String className = classes.get(new Double(result).intValue());
+                            if(className == null){
+                                System.out.println("Classname is null");
+
+                            }
+                            System.out.println(className);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        double result = cls.classifyInstance(newInstance);
-                        String className = classes.get(new Double(result).intValue());
-                        if(className == null){
-                            System.out.println("Classname is null");
-
-                        }
-                        System.out.println(className);
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
 
                 }});
             ActivityClassifierThread.start();
         });
 
+
         //When the stop recording button is clicked
         button = findViewById(R.id.stop_recording);
         button.setOnClickListener(v -> {
+            run.set(false);
             mSensorManager.unregisterListener(this);
             System.out.println("Sensors stopped");
 //            for(float[] a : MagnetometerData){
