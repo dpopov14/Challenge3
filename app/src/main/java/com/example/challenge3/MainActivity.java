@@ -1,6 +1,7 @@
 package com.example.challenge3;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -10,13 +11,18 @@ import android.os.Bundle;
 import android.widget.Button;
 
 import weka.classifiers.Classifier;
+import weka.core.Attribute;
+import weka.core.DenseInstance;
+import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.io.Serializable;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -25,21 +31,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mSensorGyroscope;
     private Sensor mSensorLinearAccelerometer;
     private Sensor mSensorMagnetometer;
-
+    private Random mRandom = new Random();
     List<float[]> AccelerometerData = new ArrayList<float[]>();
     List<float[]> GyroscopeData = new ArrayList<float[]>();
     List<float[]> LinearAccelerometerData = new ArrayList<float[]>();
     List<float[]> MagnetometerData = new ArrayList<float[]>();
-
-
-
+    private List<double[]> sensorData  = new ArrayList<>();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         Button button;
-
+        Classifier cls = null;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -54,13 +57,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             sensorText.append(currentSensor.getName()).append(
                     System.getProperty("line.separator"));
         }
+
+
         //Print all sensor data
         System.out.println(sensorText);
 
 
-
-        mSensorAccelerometer =
-                mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        //get sensors
+        mSensorAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mSensorGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         mSensorLinearAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         mSensorMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -70,10 +74,72 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         String sensor_error = getResources().getString(R.string.error_no_sensor);
 
 
+        // deserialize model
+        AssetManager assetManager = getAssets();
+        try {
+            cls= (Classifier) weka.core.SerializationHelper.read(assetManager.open("J48.model"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
+        // we need those for creating new instances later
+        // order of attributes/classes needs to be exactly equal to those used for training
+        final Attribute attributeAccelx = new Attribute("Left_pocket_Ax");
+        final Attribute attributeAccely = new Attribute("Left_pocket_Ay");
+        final Attribute attributeAccelz = new Attribute("Left_pocket_Az");
+        final Attribute attributeLinx = new Attribute("Left_pocket_Lx");
+        final Attribute attributeLiny = new Attribute("Left_pocket_Ly");
+        final Attribute attributeLinz = new Attribute("Left_pocket_Lz");
+        final Attribute attributeGyrox = new Attribute("Left_pocket_Gx");
+        final Attribute attributeGyroy = new Attribute("Left_pocket_Gy");
+        final Attribute attributeGyroz = new Attribute("Left_pocket_Gz");
+        final Attribute attributeMagx = new Attribute("Left_pocket_Mx");
+        final Attribute attributeMagy = new Attribute("Left_pocket_My");
+        final Attribute attributeMagz = new Attribute("Left_pocket_Mz");
+
+        final List<String> classes = new ArrayList<String>() {
+            {
+                add("walking"); // cls nr 1
+                add("standing"); // cls nr 2
+                add("jogging"); // cls nr 3
+                add("sitting"); // cls nr 4
+                add("biking"); // cls nr 5
+                add("upstairs"); // cls nr 6
+                add("downstairs"); // cls nr 7
+            }
+        };
+
+        // Instances(...) requires ArrayList<> instead of List<>...
+        ArrayList<Attribute> attributeList = new ArrayList<Attribute>() {
+            {
+                add(attributeAccelx);
+                add(attributeAccely);
+                add(attributeAccelz);
+                add(attributeLinx);
+                add(attributeLiny);
+                add(attributeLinz);
+                add(attributeGyrox);
+                add(attributeGyroy);
+                add(attributeGyroz);
+                add(attributeMagx);
+                add(attributeMagy);
+                add(attributeMagz);
+                Attribute attributeClass = new Attribute("@@class@@", classes);
+                add(attributeClass);
+            }
+        };
+
+
+
         //When the start recording button is clicked
         button = findViewById(R.id.start_recording);
+        Classifier finalCls1 = cls;
         button.setOnClickListener(v -> {
-//            this.onStart();
+            //start the sensors
             if (mSensorAccelerometer != null) {
                 mSensorManager.registerListener(this, mSensorAccelerometer,
                         SensorManager.SENSOR_DELAY_NORMAL);
@@ -90,93 +156,82 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 mSensorManager.registerListener(this, mSensorMagnetometer,
                         SensorManager.SENSOR_DELAY_NORMAL);
             }
+
+
+
+
+
+
+            //start the measuring thread
+            Classifier finalCls = finalCls1;
+            Thread ActivityClassifierThread = new Thread(new Runnable() {
+                public void run()
+                {
+                    //will periodically check the list with samples and create an instance
+                    Instances dataUnpredicted = new Instances("CurrentInstance",
+                            attributeList, 1);
+                    // last feature is target variable
+                    dataUnpredicted.setClassIndex(dataUnpredicted.numAttributes() - 1);
+
+                    // create new instance: this one should fall into the setosa domain
+
+                    DenseInstance newInstance = new DenseInstance(dataUnpredicted.numAttributes()) {
+                        {
+                            setValue(attributeAccelx, sensorData.get(sensorData.size()-1)[0]);
+                            setValue(attributeAccely, sensorData.get(sensorData.size()-1)[1]);
+                            setValue(attributeAccelz, sensorData.get(sensorData.size()-1)[2]);
+                            setValue(attributeLinx, sensorData.get(sensorData.size()-1)[3]);
+                            setValue(attributeLiny, sensorData.get(sensorData.size()-1)[4]);
+                            setValue(attributeLinz, sensorData.get(sensorData.size()-1)[5]);
+                            setValue(attributeGyrox, sensorData.get(sensorData.size()-1)[6]);
+                            setValue(attributeGyroy, sensorData.get(sensorData.size()-1)[7]);
+                            setValue(attributeGyroz, sensorData.get(sensorData.size()-1)[8]);
+                            setValue(attributeMagx, sensorData.get(sensorData.size()-1)[9]);
+                            setValue(attributeMagy, sensorData.get(sensorData.size()-1)[10]);
+                            setValue(attributeMagz, sensorData.get(sensorData.size()-1)[11]);
+                        }
+                    };
+
+                    //will classify samples
+                    try {
+                        double result = finalCls.classifyInstance(newInstance);
+                        String className = classes.get(new Double(result).intValue());
+                        if(className == null){
+                            System.out.println("Classname is null");
+
+                        }
+                        System.out.println(className);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }});
+            ActivityClassifierThread.start();
         });
 
         //When the stop recording button is clicked
         button = findViewById(R.id.stop_recording);
         button.setOnClickListener(v -> {
-//            this.onStop();
             mSensorManager.unregisterListener(this);
-
-            System.out.println("KUUUUUUUUUUUR");
-//        System.out.println(AccelerometerData.toString());
-
+            System.out.println("Sensors stopped");
             for(float[] a : MagnetometerData){
                 System.out.println("Row: " + a[0]+ " "+ a[1]+ " " + a[2]);
             }
 
         });
-
-        // deserialize model
-        ObjectInputStream ois = null;
-        try {
-            ois = new ObjectInputStream(
-                    new FileInputStream("C:\\Users\\stefa\\AndroidStudioProjects\\Challenge3\\app\\src\\J48.model"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            Classifier cls = (Classifier) ois.readObject();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            ois.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-
-//        first commit
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-//        if (mSensorAccelerometer != null) {
-//            mSensorManager.registerListener(this, mSensorAccelerometer,
-//                    SensorManager.SENSOR_DELAY_NORMAL);
-//        }
-//        if (mSensorGyroscope != null) {
-//            mSensorManager.registerListener(this, mSensorGyroscope,
-//                    SensorManager.SENSOR_DELAY_NORMAL);
-//        }
-//        if (mSensorLinearAccelerometer != null) {
-//            mSensorManager.registerListener(this, mSensorLinearAccelerometer,
-//                    SensorManager.SENSOR_DELAY_NORMAL);
-//        }
-//        if (mSensorMagnetometer != null) {
-//            mSensorManager.registerListener(this, mSensorMagnetometer,
-//                    SensorManager.SENSOR_DELAY_NORMAL);
-//        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-//        mSensorManager.unregisterListener(this);
-//
-//        System.out.println("KUUUUUUUUUUUR");
-////        System.out.println(AccelerometerData.toString());
-//
-//        for(float[] a : MagnetometerData){
-//            System.out.println("Row: " + a[0]+ " "+ a[1]+ " " + a[2]);
-//        }
-//
-//
-////        System.out.println(GyroscopeData.toString());
-    }
-
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         int sensorType = sensorEvent.sensor.getType();
 
         //Collect current x,y,z data
         float[] currentData = sensorEvent.values;
+
         switch(sensorType){
             //Event came from the Accelerometer
             case Sensor.TYPE_ACCELEROMETER:
@@ -201,8 +256,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
