@@ -9,6 +9,7 @@ import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
 
 import weka.classifiers.Classifier;
 import weka.core.Attribute;
@@ -32,13 +33,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Double[] LinearAccelerometerData = new Double[3];
     Double[] MagnetometerData = new Double[3];
     Classifier cls = null;
-
+    AtomicBoolean run = new AtomicBoolean(true);
+    TextView activityText;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Button button;
-        AtomicBoolean run = new AtomicBoolean(true);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -130,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         button.setOnClickListener(v -> {
             //start the sensors
+            run.set(true);
             if (mSensorAccelerometer != null) {
                 mSensorManager.registerListener(this, mSensorAccelerometer,
                         SensorManager.SENSOR_DELAY_NORMAL);
@@ -154,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             //start the measuring thread
 
-
+            activityText = (TextView) findViewById(R.id.textView);
             Thread ActivityClassifierThread = new Thread(new Runnable() {
                 public void run()
                 {
@@ -209,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                             }
                             System.out.println(className);
+                            activityText.setText(className);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
