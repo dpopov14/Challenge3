@@ -158,10 +158,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
 
-
-
-
-
             //start the measuring thread
             Classifier finalCls = finalCls1;
             Thread ActivityClassifierThread = new Thread(new Runnable() {
@@ -177,18 +173,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     DenseInstance newInstance = new DenseInstance(dataUnpredicted.numAttributes()) {
                         {
-                            setValue(attributeAccelx, sensorData.get(sensorData.size()-1)[0]);
-                            setValue(attributeAccely, sensorData.get(sensorData.size()-1)[1]);
-                            setValue(attributeAccelz, sensorData.get(sensorData.size()-1)[2]);
-                            setValue(attributeLinx, sensorData.get(sensorData.size()-1)[3]);
-                            setValue(attributeLiny, sensorData.get(sensorData.size()-1)[4]);
-                            setValue(attributeLinz, sensorData.get(sensorData.size()-1)[5]);
-                            setValue(attributeGyrox, sensorData.get(sensorData.size()-1)[6]);
-                            setValue(attributeGyroy, sensorData.get(sensorData.size()-1)[7]);
-                            setValue(attributeGyroz, sensorData.get(sensorData.size()-1)[8]);
-                            setValue(attributeMagx, sensorData.get(sensorData.size()-1)[9]);
-                            setValue(attributeMagy, sensorData.get(sensorData.size()-1)[10]);
-                            setValue(attributeMagz, sensorData.get(sensorData.size()-1)[11]);
+                            setValue(attributeAccelx, AccelerometerData[0];
+                            setValue(attributeAccely, AccelerometerData[1];
+                            setValue(attributeAccelz, sensorData.get(AccelerometerData[2]);
+                            setValue(attributeLinx, sensorData.get(GyroscopeData[0]);
+                            setValue(attributeLiny, sensorData.get(GyroscopeData[1]);
+                            setValue(attributeLinz, sensorData.get(GyroscopeData[2]);
+                            setValue(attributeGyrox, sensorData.get(LinearAccelerometerData[0]);
+                            setValue(attributeGyroy, sensorData.get(LinearAccelerometerData[1]);
+                            setValue(attributeGyroz, sensorData.get(LinearAccelerometerData[2]);
+                            setValue(attributeMagx, sensorData.get(MagnetometerData[0]);
+                            setValue(attributeMagy, sensorData.get(MagnetometerData[1]);
+                            setValue(attributeMagz, sensorData.get(MagnetometerData[2]);
                         }
                     };
 
@@ -228,7 +224,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         int sensorType = sensorEvent.sensor.getType();
-
         //Collect current x,y,z data
         float[] currentData = sensorEvent.values;
 
