@@ -31,22 +31,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mSensorGyroscope;
     private Sensor mSensorLinearAccelerometer;
     private Sensor mSensorMagnetometer;
-    private Random mRandom = new Random();
-//    List<float[]> AccelerometerData = new ArrayList<float[]>();
-//    List<float[]> GyroscopeData = new ArrayList<float[]>();
-//    List<float[]> LinearAccelerometerData = new ArrayList<float[]>();
-//    List<float[]> MagnetometerData = new ArrayList<float[]>();
     Double[] AccelerometerData = new Double[3];
     Double[] GyroscopeData = new Double[3];
     Double[] LinearAccelerometerData = new Double[3];
     Double[] MagnetometerData = new Double[3];
-    private List<double[]> sensorData  = new ArrayList<>();
+    Classifier cls = null;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Button button;
-        Classifier cls = null;
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -79,14 +75,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
         // deserialize model
-        AssetManager assetManager = getAssets();
-        try {
-            cls= (Classifier) weka.core.SerializationHelper.read(assetManager.open("J48.model"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
 
 
 
@@ -141,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         //When the start recording button is clicked
         button = findViewById(R.id.start_recording);
-        Classifier finalCls1 = cls;
+
         button.setOnClickListener(v -> {
             //start the sensors
             if (mSensorAccelerometer != null) {
@@ -167,12 +156,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
             //start the measuring thread
-            Classifier finalCls = finalCls1;
+
             Thread ActivityClassifierThread = new Thread(new Runnable() {
                 public void run()
                 {
+
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -189,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             setValue(attributeAccelx, AccelerometerData[0]);
                             setValue(attributeAccely, AccelerometerData[1]);
                             setValue(attributeAccelz, AccelerometerData[2]);
+                            System.out.println(GyroscopeData[0]);
                             setValue(attributeLinx, GyroscopeData[0]);
                             setValue(attributeLiny, GyroscopeData[1]);
                             setValue(attributeLinz, GyroscopeData[2]);
@@ -198,25 +189,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             setValue(attributeMagx, MagnetometerData[0]);
                             setValue(attributeMagy, MagnetometerData[1]);
                             setValue(attributeMagz, MagnetometerData[2]);
-//                            setValue(attributeAccelx, sensorData.get(sensorData.size()-1)[0]);
-//                            setValue(attributeAccely, sensorData.get(sensorData.size()-1)[1]);
-//                            setValue(attributeAccelz, sensorData.get(sensorData.size()-1)[2]);
-//                            setValue(attributeLinx, sensorData.get(sensorData.size()-1)[3]);
-//                            setValue(attributeLiny, sensorData.get(sensorData.size()-1)[4]);
-//                            setValue(attributeLinz, sensorData.get(sensorData.size()-1)[5]);
-//                            setValue(attributeGyrox, sensorData.get(sensorData.size()-1)[6]);
-//                            setValue(attributeGyroy, sensorData.get(sensorData.size()-1)[7]);
-//                            setValue(attributeGyroz, sensorData.get(sensorData.size()-1)[8]);
-//                            setValue(attributeMagx, sensorData.get(sensorData.size()-1)[9]);
-//                            setValue(attributeMagy, sensorData.get(sensorData.size()-1)[10]);
-//                            setValue(attributeMagz, sensorData.get(sensorData.size()-1)[11]);
 
                         }
                     };
 
                     //will classify samples
                     try {
-                        double result = finalCls.classifyInstance(newInstance);
+                        AssetManager assetManager = getAssets();
+                        try {
+                            cls= (Classifier) weka.core.SerializationHelper.read(assetManager.open("J48.model"));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        double result = cls.classifyInstance(newInstance);
                         String className = classes.get(new Double(result).intValue());
                         if(className == null){
                             System.out.println("Classname is null");
@@ -227,11 +214,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         e.printStackTrace();
                     }
 
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                 }});
             ActivityClassifierThread.start();
         });
