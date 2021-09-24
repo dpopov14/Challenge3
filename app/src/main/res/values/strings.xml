@@ -3,5 +3,6 @@
     <string name="start_recording">Start recording</string>
     <string name="stop_recording">Stop recording</string>
     <string name="error_no_sensor">No sensor</string>
+    <string name="activity_estimation">Activity estimation</string>
 
 </resources>

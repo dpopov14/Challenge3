@@ -79,18 +79,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // we need those for creating new instances later
         // order of attributes/classes needs to be exactly equal to those used for training
-        final Attribute attributeAccelx = new Attribute("Left_pocket_Ax");
-        final Attribute attributeAccely = new Attribute("Left_pocket_Ay");
-        final Attribute attributeAccelz = new Attribute("Left_pocket_Az");
-        final Attribute attributeLinx = new Attribute("Left_pocket_Lx");
-        final Attribute attributeLiny = new Attribute("Left_pocket_Ly");
-        final Attribute attributeLinz = new Attribute("Left_pocket_Lz");
-        final Attribute attributeGyrox = new Attribute("Left_pocket_Gx");
-        final Attribute attributeGyroy = new Attribute("Left_pocket_Gy");
-        final Attribute attributeGyroz = new Attribute("Left_pocket_Gz");
-        final Attribute attributeMagx = new Attribute("Left_pocket_Mx");
-        final Attribute attributeMagy = new Attribute("Left_pocket_My");
-        final Attribute attributeMagz = new Attribute("Left_pocket_Mz");
+        final Attribute attributeAccelx = new Attribute("Wrist_Ax");
+        final Attribute attributeAccely = new Attribute("Wrist_pocket_Ay");
+        final Attribute attributeAccelz = new Attribute("Wrist_Az");
+        final Attribute attributeLinx = new Attribute("Wrist_Lx");
+        final Attribute attributeLiny = new Attribute("Wrist_Ly");
+        final Attribute attributeLinz = new Attribute("Wrist_Lz");
+        final Attribute attributeGyrox = new Attribute("Wrist_Gx");
+        final Attribute attributeGyroy = new Attribute("Wrist_Gy");
+        final Attribute attributeGyroz = new Attribute("Wrist_Gz");
+        final Attribute attributeMagx = new Attribute("Wrist_Mx");
+        final Attribute attributeMagy = new Attribute("Wrist_My");
+        final Attribute attributeMagz = new Attribute("Wrist_Mz");
 
         final List<String> classes = new ArrayList<String>() {
             {
